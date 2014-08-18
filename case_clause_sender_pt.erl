@@ -21,22 +21,32 @@ case_clause_sender_fun(T) ->
 
 
 case_clause_sender_expr({'case',LINE,E,Clauses}) ->
-	{'case',LINE,E,change_clauses(Clauses,1,LINE)};
+	PatternsClauses = 
+		[Pattern || {clause,_,Pattern,_,_} <- Clauses],
+	{'case',LINE,E,change_clauses(Clauses,1,E,PatternsClauses,LINE)};
 case_clause_sender_expr(Other) ->
 	Other.
 
 
-change_clauses([],_,_) ->
+change_clauses([],_,_,_,_) ->
 	[];
-change_clauses([{clause,LINE,Pattern,Guards,Body}|Clauses],Num,CaseLine) ->
-	NClauses = change_clauses(Clauses,Num + 1,CaseLine),
+change_clauses([{clause,LINE,Pattern,Guards,Body}|Clauses],Num,E,PatternsClauses,CaseLine) ->
+	NClauses = change_clauses(Clauses,Num + 1,E,PatternsClauses,CaseLine),
 	NBody = 
 		[{op,LINE,'!',
 			{atom,LINE,'case_tracer'},
 			 {tuple,LINE,[
 			 	{atom,LINE,'case_trace'},
-			 	{integer,LINE,CaseLine},
-			 	{integer,LINE,Num}]} }
+			 	{tuple,LINE,[
+				 	{integer,LINE,CaseLine},
+				 	{integer,LINE,Num},
+				 	% {integer,LINE,0},
+				 	% {integer,LINE,1}
+				 	{string,LINE,lists:flatten(io_lib:format("~p",[E]))},
+				 	{string,LINE,lists:flatten(io_lib:format("~p",[Pattern]))},
+				 	{string,LINE,lists:flatten(io_lib:format("~p",[PatternsClauses]))}
+			 	]}
+			 ]} }
 		 | Body],
 	[{clause,LINE,Pattern,Guards,NBody}|NClauses].
 

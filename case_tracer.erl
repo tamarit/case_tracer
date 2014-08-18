@@ -3,7 +3,13 @@
 -export([trace/1]).
 
 trace(InitialCall) ->
-	{ok,[AExpr|_]} = parse_expr(InitialCall++"."),
+	AExpr = 
+		case is_list(InitialCall) of 
+		 	true ->
+		 		hd(parse_expr(InitialCall++"."));
+		 	false ->
+		 		InitialCall
+		end,
 	{call,_,{remote,_,{atom,_,ModName},_},_} = AExpr,
 	%io:format("~p\n~p\n",[AExpr,ModName]),
 	compile:file(atom_to_list(ModName) ++ ".erl" ,[{parse_transform,case_clause_sender_pt}]),
@@ -24,8 +30,12 @@ receive_loop(Current,Trace) ->
 	receive 
 		stop ->
 			Trace;
-		TraceItem = {case_trace, _, _} ->
+		TraceItem = {case_trace, _} ->
+			% io:format("entra ~p\n",[TraceItem]),
 			receive_loop(Current + 1, [{Current,TraceItem}|Trace])
+		% ;
+		% Other ->
+		% 	io:format("entra ~p\n",[Other])
 	end.
 
 
@@ -33,10 +43,10 @@ parse_expr(Func) ->
     case erl_scan:string(Func) of
 		{ok, Toks, _} ->
 		    case erl_parse:parse_exprs(Toks) of
-			{ok, _Term} = Res ->
-			    Res;
-			_Err ->
-			    {error, parse_error}
+				{ok, _Term} = Res ->
+				    Res;
+				_Err ->
+				    {error, parse_error}
 		    end;
 		_Err ->
 		    {error, parse_error}

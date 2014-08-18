@@ -1,8 +1,9 @@
 -module(test).
 
--export([main/2 ]).
+-export([f/3 ]).
 
-main(X,Y) ->
+f(X,Y,Z) ->
+	% N = 3,
 	NX = 
 		case X of 
 			1 -> 
@@ -11,10 +12,18 @@ main(X,Y) ->
 				1;
 			N ->
 				N - 1
+			% ;
+			% _ -> 
+			% 	N - 2
 		end,
 	case Y > 0 of
+	%case 0 < Y of
 		true -> Y - NX;
-		false -> NX - Y
+		false -> 
+			case Z of 
+				1 -> NX - Y;
+				_ -> NX + Y
+			end
 	end.
 
 
