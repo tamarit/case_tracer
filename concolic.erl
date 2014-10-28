@@ -3,10 +3,10 @@
 
 concolic(Call) ->
 	Explored = lists:reverse(explore_all(parse_expr(Call),[],[])),
-	[lists:flatten(erl_pp:exprs([Call])) || Call <- Explored].
+	[lists:flatten(erl_pp:exprs([Call_])) || Call_ <- Explored].
 
 explore_all(Call,Stack,Explored) ->
-	% io:format("pasa: ~p\n~p\n",[Call,Stack]),
+	io:format("pasa: ~p\n~p\n",[Call,Stack]),
 	% io:get_line(""),
 	Trace = case_tracer:trace(Call),
 	NStack = 
@@ -14,11 +14,11 @@ explore_all(Call,Stack,Explored) ->
 			[] ->
 				lists:reverse(build_stack(Trace));
 			_ -> 
-				% io:format("Trace: ~p\n",[Trace]),
+				io:format("Trace: ~p\n",[Trace]),
 				NTrace = remove_from_trace(Stack,Trace),
 				remove_done(lists:reverse(build_stack(NTrace)) ++ Stack)
 		end,
-	% io:format("NStack: ~p\n",[NStack]),
+	io:format("NStack: ~p\n",[NStack]),
 	case NStack of 
 		[] -> 
 			[Call | Explored];
